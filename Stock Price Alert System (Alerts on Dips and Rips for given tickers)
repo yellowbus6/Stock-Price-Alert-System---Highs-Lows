@@ -1,0 +1,37 @@
+import os
+import time
+import yfinance as yf
+from winotify import Notification, audio
+
+tickers = ["JMIA", "ENVX", "JD", "U", "AI", "PLTR", "COIN", "AFRM", "CVNA", "PTON", "NVDA", "AUPH", "ORCL", "ADBE", "CRM", "SNOW"]
+upper_limits = [3.65, 18.87, 36.65, 45, 37.9, 15.8, 81.4, 16.40, 29, 8.4, 424.65, 10.5, 120.84, 491, 213.2, 184]
+lower_limits = [3.2, 16, 34.37, 37.6, 33.6, 14, 71.5, 15.1, 23.5, 7.4, 408, 9.15, 116.9, 458.5, 209.5, 171.9]
+
+previous_prices = {}
+
+while True:
+    for i, ticker in enumerate(tickers):
+        current_price = yf.Ticker(ticker).history(period="1d").iloc[-1, 5]
+        if ticker not in previous_prices or current_price != previous_prices[ticker]:
+            if current_price > upper_limits[i]:
+                toast = Notification(app_id="Nolan's Stock Alarm Bot",
+                                     title="Price Alert For " + ticker,
+                                     msg=f"{ticker} has reached a price of {current_price}. You might want to sell.",
+                                     icon=os.path.join(os.getcwd(), "sell.png"),
+                                     duration="long")
+                toast.add_actions(label="Peep it on Yahoo Finance to see if it's worthy of an investment",
+                                  launch="https://finance.yahoo.com/")
+                toast.set_audio(audio.LoopingAlarm6, loop=True)
+                toast.show()
+            elif current_price < lower_limits[i]:
+                toast = Notification(app_id="Nolan's Stock Alarm Bot",
+                                     title="Price Alert For " + ticker,
+                                     msg=f"{ticker} has reached a price of {current_price}. You might want to buy.",
+                                     icon=os.path.join(os.getcwd(), "buy.png"),
+                                     duration="long")
+                toast.add_actions(label="Peep it on Yahoo Finance to see if it's worthy of an investment",
+                                  launch="https://finance.yahoo.com/")
+                toast.set_audio(audio.LoopingAlarm8, loop=True)
+                toast.show()
+            previous_prices[ticker] = current_price
+    time.sleep(30)
